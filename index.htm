@@ -1784,7 +1784,24 @@ function setHeaderDate() {
         headerDateEl.textContent = `As of ${dateString}`;
     }
 }
+</head>
+    <script>
+// OneDrive Integration
+const ONEDRIVE_FILE_URL = "https://instarempte-my.sharepoint.com/:x:/g/personal/onedrive_transactionoperations_instarem_com/IQDtgAPw58TrRpl1th2-UkGcAZlLzqt_bsQrtJeTuek_dNc?download=1";
 
+window.addEventListener('load', function() {
+    setTimeout(function() {
+        fetch(ONEDRIVE_FILE_URL, { mode: 'cors' })
+            .then(r => r.arrayBuffer())
+            .then(data => {
+                console.log('✅ Loaded from OneDrive!');
+            })
+            .catch(e => {
+                console.log('ℹ️ OneDrive load not available, use manual upload');
+            });
+    }, 1000);
+});
+</script>
 setHeaderDate();
 loadData();
 renderRegions();
