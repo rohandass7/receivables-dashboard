@@ -781,6 +781,23 @@ body {
     }
 }
 </style>
+<script>
+// Auto-load Excel from GitHub
+const GITHUB_FILE_URL = "https://raw.githubusercontent.com/rohandass7/receivables-dashboard/main/Receivable Tracker - Master - 20 July.xlsx";
+
+window.addEventListener('load', function() {
+    setTimeout(function() {
+        fetch(GITHUB_FILE_URL)
+            .then(r => r.arrayBuffer())
+            .then(data => {
+                const workbook = XLSX.read(data, { type: 'array' });
+                loadData();
+                console.log('✅ Data loaded from GitHub!');
+            })
+            .catch(e => console.log('Click upload button to load data'));
+    }, 2000);
+});
+</script>
 </head>
 <body>
 
