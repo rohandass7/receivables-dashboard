@@ -1807,6 +1807,49 @@ loadData();
 renderRegions();
 updateSummary();
 </script>
+<script>
+// Auto-load Excel from GitHub
+const GITHUB_FILE_URL = "https://raw.githubusercontent.com/rohandass7/receivables-dashboard/main/Receivable%20Tracker%20-%20Master%20-%2020%20July.xlsx";
 
+window.addEventListener('load', function() {
+    setTimeout(function() {
+        console.log('Attempting to load from GitHub...');
+        fetch(GITHUB_FILE_URL)
+            .then(response => {
+                console.log('Fetch response:', response.status);
+                return response.arrayBuffer();
+            })
+            .then(arrayData => {
+                console.log('Got data, size:', arrayData.byteLength);
+                const workbook = XLSX.read(arrayData, { type: 'array' });
+                console.log('Sheets:', workbook.SheetNames);
+                
+                // Parse data into global variable
+                const sheet = workbook.Sheets['Invoices'];
+                const range = XLSX.utils.decode_range(sheet['!ref']);
+                
+                data.regions = [];
+                
+                for (let row = range.s.r + 1; row <= range.e.r; row++) {
+                    const region = sheet[XLSX.utils.encode_cell({r: row, c: 2})]?.v;
+                    if (!region) continue;
+                    
+                    let regionObj = data.regions.find(r => r.name === region);
+                    if (!regionObj) {
+                        regionObj = { name: region, customers: [] };
+                        data.regions.push(regionObj);
+                    }
+                }
+                
+                renderRegions();
+                updateSummary();
+                console.log('✅ Data loaded successfully!');
+            })
+            .catch(e => {
+                console.log('Error loading from GitHub:', e.message);
+            });
+    }, 2000);
+});
+</script>
 </body>
 </html>
