@@ -1791,5 +1791,25 @@ renderRegions();
 updateSummary();
 </script>
 
+<script>
+// ===== ONEDRIVE AUTO-LOAD =====
+const ONEDRIVE_FILE_URL = "https://instarempte-my.sharepoint.com/:x:/g/personal/onedrive_transactionoperations_instarem_com/IQDtgAPw58TrRpl1th2-UkGcAZlLzqt_bsQrtJeTuek_dNc?download=1";
+
+window.addEventListener('load', function() {
+    setTimeout(function() {
+        fetch(ONEDRIVE_FILE_URL, { mode: 'cors' })
+            .then(response => response.arrayBuffer())
+            .then(data => {
+                const workbook = XLSX.read(data, { type: 'array' });
+                renderRegions();
+                updateSummary();
+                console.log('✅ OneDrive data loaded!');
+            })
+            .catch(error => {
+                console.log('OneDrive not available, use manual upload');
+            });
+    }, 2000);
+});
+</script>
 </body>
 </html>
