@@ -1790,5 +1790,21 @@ loadData();
 renderRegions();
 updateSummary();
 
+    <script>
+// File Upload Handler
+document.getElementById('fileInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        const data = event.target.result;
+        const workbook = XLSX.read(data, { type: 'array' });
+        loadData();
+        console.log('✅ File uploaded and data loaded!');
+    };
+    reader.readAsArrayBuffer(file);
+});
+</script>
 </body>
 </html>
