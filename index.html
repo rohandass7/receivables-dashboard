@@ -799,6 +799,70 @@ window.addEventListener('load', function() {
 });
 </script>
 </head>
+    <script>
+// Auto-load Excel from GitHub
+const GITHUB_FILE_URL = "https://raw.githubusercontent.com/rohandass7/receivables-dashboard/main/Receivable%20Tracker%20-%20Master%20-%2020%20July.xlsx";
+
+window.addEventListener('load', function() {
+    setTimeout(function() {
+        console.log('Loading from GitHub...');
+        fetch(GITHUB_FILE_URL)
+            .then(r => r.arrayBuffer())
+            .then(arrayData => {
+                try {
+                    const workbook = XLSX.read(arrayData, { type: 'array' });
+                    const sheet = workbook.Sheets['Invoices'];
+                    const range = XLSX.utils.decode_range(sheet['!ref']);
+                    
+                    data.regions = [];
+                    let regionMap = {};
+                    
+                    for (let row = range.s.r + 1; row <= range.e.r; row++) {
+                        const platform = sheet[XLSX.utils.encode_cell({r: row, c: 0})]?.v || '';
+                        const customer = sheet[XLSX.utils.encode_cell({r: row, c: 1})]?.v || '';
+                        const region = sheet[XLSX.utils.encode_cell({r: row, c: 2})]?.v || '';
+                        const amount = parseFloat(sheet[XLSX.utils.encode_cell({r: row, c: 9})]?.v) || 0;
+                        const days = parseInt(sheet[XLSX.utils.encode_cell({r: row, c: 13})]?.v) || 0;
+                        const invoiceNumber = sheet[XLSX.utils.encode_cell({r: row, c: 19})]?.v || '';
+                        const billingPeriod = sheet[XLSX.utils.encode_cell({r: row, c: 11})]?.v || '';
+                        const accountManager = sheet[XLSX.utils.encode_cell({r: row, c: 3})]?.v || '';
+                        
+                        if (!region || !customer) continue;
+                        
+                        if (!regionMap[region]) {
+                            regionMap[region] = { name: region, customers: {} };
+                            data.regions.push(regionMap[region]);
+                        }
+                        
+                        if (!regionMap[region].customers[customer]) {
+                            regionMap[region].customers[customer] = { name: customer, invoices: [] };
+                        }
+                        
+                        regionMap[region].customers[customer].invoices.push({
+                            platform,
+                            amount,
+                            days,
+                            invoiceNumber,
+                            billingPeriod,
+                            accountManager
+                        });
+                    }
+                    
+                    data.regions.forEach(region => {
+                        region.customers = Object.values(region.customers);
+                    });
+                    
+                    renderRegions();
+                    updateSummary();
+                    console.log('✅ Data loaded from GitHub!');
+                } catch(e) {
+                    console.error('Parse error:', e);
+                }
+            })
+            .catch(e => console.log('GitHub load failed'));
+    }, 2000);
+});
+</script>
 <body>
 
 <div class="loading-overlay" id="loading">
