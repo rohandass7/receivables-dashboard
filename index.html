@@ -1795,55 +1795,27 @@ const ONEDRIVE_FILE_URL = "https://instarempte-my.sharepoint.com/:x:/g/personal/
 
 window.addEventListener('load', function() {
     setTimeout(function() {
-        fetch(ONEDRIVE_FILE_URL, { mode: 'cors' })
-            .then(response => response.arrayBuffer())
-            .then(arrayData => {
-                const workbook = XLSX.read(arrayData, { type: 'array' });
-                const sheet = workbook.Sheets['Invoices'];
-                const range = XLSX.utils.decode_range(sheet['!ref']);
-                
-                // Process the data into the global data variable
-                data.regions = [];
-                let currentRegion = null;
-                let currentCustomer = null;
-                
-                for (let row = range.s.r + 1; row <= range.e.r; row++) {
-                    const platform = sheet[XLSX.utils.encode_cell({r: row, c: 0})]?.v || '';
-                    const customer = sheet[XLSX.utils.encode_cell({r: row, c: 1})]?.v || '';
-                    const region = sheet[XLSX.utils.encode_cell({r: row, c: 2})]?.v || '';
-                    const amount = parseFloat(sheet[XLSX.utils.encode_cell({r: row, c: 9})]?.v) || parseFloat(sheet[XLSX.utils.encode_cell({r: row, c: 10})]?.v) || 0;
-                    const days = parseInt(sheet[XLSX.utils.encode_cell({r: row, c: 13})]?.v) || 0;
-                    const invoiceNumber = sheet[XLSX.utils.encode_cell({r: row, c: 19})]?.v || '';
-                    
-                    if (!region) continue;
-                    
-                    if (!currentRegion || currentRegion.name !== region) {
-                        currentRegion = { name: region, customers: [] };
-                        data.regions.push(currentRegion);
-                        currentCustomer = null;
-                    }
-                    
-                    if (!currentCustomer || currentCustomer.name !== customer) {
-                        currentCustomer = { name: customer, invoices: [] };
-                        currentRegion.customers.push(currentCustomer);
-                    }
-                    
-                    currentCustomer.invoices.push({
-                        platform,
-                        amount,
-                        days,
-                        invoiceNumber
-                    });
-                }
-                
-                renderRegions();
-                updateSummary();
-                console.log('✅ OneDrive data loaded and processed!');
+        console.log('Attempting to fetch from OneDrive...');
+        fetch(ONEDRIVE_FILE_URL)
+            .then(r => {
+                console.log('Fetch response:', r.status, r.ok);
+                return r.arrayBuffer();
             })
-            .catch(error => {
-                console.log('OneDrive not available - use manual upload');
+            .then(buffer => {
+                console.log('Got buffer, size:', buffer.byteLength);
+                try {
+                    const workbook = XLSX.read(buffer, { type: 'array' });
+                    console.log('Workbook sheets:', workbook.SheetNames);
+                    loadData(); // Use the existing function
+                    console.log('✅ Data loaded from OneDrive!');
+                } catch(e) {
+                    console.error('Error parsing:', e);
+                }
+            })
+            .catch(e => {
+                console.log('Fetch error (normal if CORS blocked):', e.message);
             });
-    }, 2000);
+    }, 3000);
 });
 </script>
 </body>
